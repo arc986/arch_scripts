@@ -196,6 +196,84 @@ user_pref("widget.wayland.allow-native-wrappers", true);
 // el consumo de RAM/disco, también tiene un impacto en entornos Wayland.
 // Si priorizas bajo consumo, mantenlas deshabilitadas como en el user.js previo.
 
+// --- Configuraciones Adicionales para Privacidad y Seguridad ---
+
+// DNS over HTTPS (DoH): Encifra tus consultas DNS, haciendo más difícil para terceros (como tu ISP) ver a qué sitios te conectas.
+// Firefox tiene varios modos:
+// 0 = Apagado
+// 2 = Usar DoH solo si el servidor de OS lo indica (menos seguro)
+// 3 = Usar DoH con un proveedor seleccionado si es más rápido (default)
+// 4 = Usar DoH y deshabilitar DNS nativo (fallback si falla) - Recomendado para privacidad/seguridad
+// 5 = Usar DoH y deshabilitar DNS nativo (sin fallback, puede romper si DoH falla) - Más estricto, mayor riesgo
+user_pref("network.trr.mode", 4); // Modo DoH (4 es un buen balance)
+// Elige un proveedor TRR (Trusted Recursive Resolver). Cloudflare y NextDNS son opciones populares.
+// user_pref("network.trr.uri", "https://mozilla.cloudflare-dns.com/dns-query"); // Cloudflare
+user_pref("network.trr.uri", "https://dns.nextdns.io/<Your_NextDNS_ID>/dns-query"); // Ejemplo NextDNS (Reemplaza <Your_NextDNS_ID>)
+// user_pref("network.trr.uri", "https://doh. sauber-online.de/dns-query"); // Otro proveedor de ejemplo
+// También puedes configurar un proveedor personalizado si autohosteas uno o conoces otro.
+user_pref("network.trr.custom_uri", ""); // Si usas un proveedor personalizado diferente a los predefinidos por Mozilla
+
+// Encrypted Client Hello (ECH) / Encrypted SNI (ESNI - predecesor): Cifra parte del proceso de conexión TLS
+// que normalmente revelaría a qué dominio te estás conectando. Mejora la privacidad.
+// Nota: Aún no es soportado por todos los sitios/servidores.
+user_pref("network.dns.echconfig.enabled", true); // Habilitar ECH/ESNI (si el sitio/servidor lo soporta)
+user_pref("network.dns.http3_echconfig.enabled", true); // Habilitar ECH sobre HTTP/3
+
+// --- Permisos por Defecto ---
+// Controla cómo Firefox maneja solicitudes de permisos sensibles de sitios web.
+user_pref("media.autoplay.default", 5); // 5 = Bloquear autoplay de audio y video con sonido (recomendado para rendimiento y UX)
+// 1 = Permitir por defecto (no recomendado)
+// 0 = Preguntar (puede ser molesto)
+// 5 es menos molesto que 0 y mejor que 1.
+
+user_pref("dom.webnotifications.enabled", false); // Deshabilita notificaciones web push. Reduce distracciones y superficie de ataque/rastreo.
+user_pref("dom.webnotifications.enabled", false); // Asegura que esté apagado (puede ser la misma pref)
+user_pref("dom.push.enabled", false); // Deshabilita la API Push (usada para notificaciones)
+
+user_pref("permissions.default.camera", 2); // 2 = Bloquear cámara por defecto (preguntarías manualmente si la necesitas en un sitio)
+user_pref("permissions.default.microphone", 2); // 2 = Bloquear micrófono por defecto
+user_pref("permissions.default.desktop-notification", 2); // 2 = Bloquear peticiones de notificación por defecto (complementa dom.webnotifications.enabled)
+user_pref("permissions.default.geo", 2); // 2 = Bloquear geolocalización por defecto (complementa geo.enabled=false)
+
+// --- Servicio Workers y Push (Complementario a notificaciones) ---
+// Los Service Workers pueden operar en segundo plano incluso cuando el sitio no está abierto,
+// lo cual puede tener implicaciones de privacidad y uso de recursos.
+user_pref("dom.serviceWorkers.enabled", false); // Deshabilita Service Workers. Nota: Puede romper funcionalidad offline en algunos sitios.
+// Si deshabilitas Service Workers, la API Push también se ve afectada.
+
+// --- Aislamiento de Red y Estado (Complementario a privacy.partition.*) ---
+// Estos refinan el aislamiento de recursos y conexiones, pero como mencionamos, pueden afectar rendimiento/compatibilidad.
+// Si priorizas bajo consumo, mejor no usar el particionamiento completo (privacy.partition.*)
+// Pero se pueden ajustar otras prefs de red:
+user_pref("network.http.max-connections", 900); // Número máximo de conexiones HTTP (default 900). Ajusta si notas problemas de rendimiento con muchos tabs/sitios.
+user_pref("network.http.max-persistent-connections-per-server", 8); // Máx conexiones persistentes por servidor (default 6-8).
+
+// --- Cache y Historial ---
+// Configuraciones más agresivas para limpiar datos al cerrar.
+// Nota: Limpiar todo al cerrar impacta la velocidad al volver a visitar sitios.
+// user_pref("privacy.sanitize.pending", "[{\"id\":\"history\",\"remove\":true},{\"id\":\"cookies\",\"remove\":true},{\"id\":\"cache\",\"remove\":true},{\"id\":\"formdata\",\"remove\":true},{\"id\":\"passwords\",\"remove\":true},{\"id\":\"siteSettings\",\"remove\":true},{\"id\":\"offlineApps\",\"remove\":true}]");
+// user_pref("privacy.sanitize.onShutdown", true); // Limpiar datos seleccionados arriba al cerrar Firefox
+
+// --- Otras configuraciones de Limpieza/Minimalismo ---
+user_pref("browser.formfill.enable", false); // Deshabilita autocompletado de formularios (privacidad, pero menos conveniente)
+user_pref("browser.formfill.expire_days", 0); // Asegura que los datos guardados expiren inmediatamente
+
+user_pref("browser.download.forbid_open_containering_pdf", true); // No abrir PDFs automáticamente dentro del navegador
+user_pref("pdfjs.disabled", true); // Deshabilita el visor PDF integrado de Firefox (usa un visor externo más seguro/ligero). Requiere instalar un visor PDF externo.
+
+// --- Control de Contenido HTML5 ---
+// Algunas APIs HTML5 pueden ser usadas para fingerprinting o exponer información.
+user_pref("dom.battery.enabled", false); // Deshabilita la API de estado de batería (puede usarse para fingerprinting)
+user_pref("dom.vibrator.enabled", false); // Deshabilita la API de vibración (principalmente móvil, pero buena práctica)
+
+// --- Seguridad adicional ---
+// user_pref("browser.safeBrowse.downloads.remote.enabled", false); // Deshabilita la verificación de descargas con el servicio de Navegación Segura de Google (privacidad vs seguridad). Si confías en tu antivirus/sentido común, apágalo.
+
+// --- Ajustes finos de Wayland/Gráficos (si no usas las particiones) ---
+// Estas suelen ser true por defecto si WebRender está activo y detecta Wayland.
+// Si about:support muestra algo incorrecto, puedes forzarlas.
+// user_pref("layers.acceleration.force-enabled", true); // Forzar aceleración de capas
+// user_pref("gfx.compositor.glcontext", "glx"); // O "egl" - dependiendo de tu setup Wayland/drivers, "egl" es más moderno para Wayland
 
 // Fin de configuraciones añadidas por script
 ';
